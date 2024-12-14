@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shortest Path Calculator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Find Shortest Path</h1>
+    </header>
+
+    <div class="main-container">
+        <div class="form-container">
+            <form id="pathForm">
+                <label for="source">Source City:</label>
+                <select id="source" name="source" required>
+                    <option value="">Select a city</option>
+                    {% for city in cities %}
+                        <option value="{{ city }}">{{ city }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="destination">Destination City:</label>
+                <select id="destination" name="destination" required>
+                    <option value="">Select a city</option>
+                    {% for city in cities %}
+                        <option value="{{ city }}">{{ city }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit">Find Shortest Path</button>
+            </form>
+
+            <h2>Result:</h2>
+            <p id="result"></p>
+        </div>
+
+        <div id="map" class="map-container">
+            <img src="{{ url_for('static', filename='image.png') }}" alt="">
+        </div>
+
+        <div id="powerbi-dashboard" class="dashboard-container">
+            <iframe width="800" height="600" src="https://v3.polymersearch.com/b/675cc8c0a704a1000842f875" frameborder="0" allowFullScreen="true"></iframe>
+        </div>
+    </div>
+
+    <script src="/static/traffic-alert.js"></script> <!-- Include the traffic alert script -->
+    <script>
+        // Handle form submission
+        document.getElementById('pathForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            const source = document.getElementById('source').value;
+            const destination = document.getElementById('destination').value;
+
+            // Send a POST request to the server
+            fetch('/find_shortest_path', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ source: source, destination: destination })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Display the result
+                if (data.error) {
+                    document.getElementById('result').innerText = data.error;
+                } else {
+                    document.getElementById('result').innerText = `Path: ${data.path.join(' -> ')}, Distance: ${data.distance}`;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result').innerText = 'An error occurred: ' + error.message;
+            });
+        });
+    </script>
+</body>
+</html>
